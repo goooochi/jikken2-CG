@@ -1,11 +1,17 @@
 
 //課題15
 
+//グーグルのインターネット繋がらなかった時に表示されるやつをつくる
+
 window.addEventListener("DOMContentLoaded", init); 
 
 function init() { 
-    const width = 500; 
+    const width = 1500; 
     const height = 500;
+
+
+    // シーンを作成
+    const scene = new THREE.Scene(); 
 
     // レンダラーを作成 
     const renderer = new THREE.WebGLRenderer({ 
@@ -13,18 +19,26 @@ function init() {
     }); 
     renderer.setSize(width, height); /* ウィンドウサイズの設定 */ 
     // renderer.setSize( window.innerWidth, window.innerHeight );
-// キャンバスをDOMツリーに追加
-    renderer.setClearColor(0x000000); /* 背景色の設定 */ 
+    // キャンバスをDOMツリーに追加
+    renderer.setClearColor(0xFFFFFF); /* 背景色の設定 */ 
 
-    // シーンを作成 
-    const scene = new THREE.Scene(); 
 
     // カメラを作成 
     const camera = new THREE.PerspectiveCamera(45, width / height); 
-    camera.position.set(0, 100,0); 
+    camera.position.set(-200, 50,-70); 
     camera.lookAt(new THREE.Vector3(0,0,0));
-    
 
+
+
+
+
+
+
+
+
+
+
+    //ロボットの色の設定
     const bodyMat = new THREE.MeshStandardMaterial({ 
         color: 0xaaaaaa
     });
@@ -43,9 +57,6 @@ function init() {
         //緑
         color: 0x00ff00
     }); 
-
-
-    
 
     const head = new THREE.Mesh(new THREE.BoxGeometry(20,16,16),bodyMat);
     head.position.set(0,17,0);
@@ -82,8 +93,6 @@ function init() {
     scene.add(body_All);
 
 
-
-
     const leftarm = new THREE.Mesh(new THREE.BoxGeometry(2,2,16),bodyMat);
     leftarm.rotation.set(Math.PI / 2,Math.PI / 6, 0);
     leftarm.position.set(15,0,0);
@@ -95,7 +104,6 @@ function init() {
     scene.add(leftarm_All);
 
 
-
     const rightarm = new THREE.Mesh(new THREE.BoxGeometry(2,2,16),bodyMat);
     rightarm.rotation.set(Math.PI / 2, -Math.PI / 6, 0);
     rightarm.position.set(-15,0,0);
@@ -105,7 +113,6 @@ function init() {
     const rightarm_All = new THREE.Group();
     rightarm_All.add(rightarm,rightHand);
     scene.add(rightarm_All);
-
 
 
     const leftleg = new THREE.Mesh(new THREE.BoxGeometry(3,3,16),bodyMat);
@@ -123,7 +130,6 @@ function init() {
     scene.add(leftleg_All);
 
     
-
     const rightleg = new THREE.Mesh(new THREE.BoxGeometry(3,3,16),bodyMat);
     rightleg.rotation.set(Math.PI / 2, 0, 0);
     rightleg.position.set(-4,-15,0);
@@ -142,125 +148,45 @@ function init() {
 
 
 
-    
-    var canvas = document.querySelector("#myCanvas");
-    var verticalLine_0 = (canvas.width)/3
-    var verticalLine_1 = (canvas.width * 2)/3
-    
-    var horizontalLine_0 = (canvas.height)/3
-    var horizontalLine_1 = (canvas.height * 2)/3
 
-    var movePositiveX;
-    var moveNegativeX;
 
-    var movePositiveZ;
-    var moveNegativeZ;
+
+    const head_1 = new THREE.Mesh(new THREE.BoxGeometry(20,16,16),bodyMat);
+    head_1.position.set(0,50,200);
+    scene.add(head_1);
+
+    function moveObj(){
+        let requestId = requestAnimationFrame(moveObj);
+        head_1.position.z -= 0.1;
+        render();
+    }
+
+
 
     //Jump周辺
     var jump;
     var initPosition = Robot.position.y;
     var currentPosition = 0;
 
-
-    document.addEventListener('mousedown', onDocumentMouseDown, false);
-    function onDocumentMouseDown(event_m) {
-        switch (event_m.button) {
-            // 左クリック
-            case 0:
-                const element = event_m.currentTarget;
-                //canvas上のマウスのXY座標
-                const x = event_m.clientX;
-                const y = event_m.clientY;
-                currentPosition = initPosition;
-                
-                if(horizontalLine_0 > x){
-                    movePositiveX = false;
-                    moveNegativeX = true;
-                    movePositiveZ = false;
-                    moveNegativeZ = false;
-                }
-
-                if(horizontalLine_1 < x){
-                    movePositiveX = true;
-                    moveNegativeX = false;
-                    movePositiveZ = false;
-                    moveNegativeZ = false;
-                }
-
-                if(verticalLine_0 > y){
-                    movePositiveX = false;
-                    moveNegativeX = false;
-                    movePositiveZ = false;
-                    moveNegativeZ = true; 
-                }
-
-                if(verticalLine_1 < y){
-                    movePositiveX = false;
-                    moveNegativeX = false;
-                    movePositiveZ = true;
-                    moveNegativeZ = false;
-                }
-                
-                animate();
-                
-                break;
-            // ホイール
-            case 1: break;
-            // 右クリック
-
-            case 2:
-                
-                break;
+    document.addEventListener("keydown", onDocumentKeyDown, false);
+    function onDocumentKeyDown(event_k) {
+        let keyCode = event_k.which;
+        if (keyCode == 32) {
+            Jump();
+            currentPosition = 0;
         }
     }
-
-    
-    //canvasを４分割する
-    function animate() {
-        let requestId = requestAnimationFrame(animate);
-        var deltaX = 0.1;
-        if(moveNegativeX){
-            Robot.position.x -= 0.1;
+    function Jump() {
+        //ジャンプできるようにする
+        if(currentPosition < Math.PI / 2){
+            let requestId = requestAnimationFrame(Jump);
+            currentPosition += 0.02; 
+            Robot.position.y = Math.sin(2 * currentPosition) * 20;
+            //以下のON/OFFで追従するかを切り替える
+            // camera.lookAt(Robot.position);
+            render();
         }
-
-        if(movePositiveX){
-            // let requestId = requestAnimationFrame(animate);
-            Robot.position.x += 0.1;
-            // render();
-        }
-
-        if(moveNegativeZ){
-            // let requestId = requestAnimationFrame(animate);
-            Robot.position.z -= 0.1;
-            // render();
-        }
-
-        if(movePositiveZ){
-            // let requestId = requestAnimationFrame(animate);
-            Robot.position.z += 0.1;
-        }
-
-        render();
-        // if(jump){
-        //     //ジャンプできるようにする
-        //     if(currentPosition < Math.PI){
-        //         let requestId = requestAnimationFrame(animate);
-        //         currentPosition += 0.02; 
-        //         Robot.position.y = Math.sin(currentPosition) * 10;
-        //         //以下のON/OFFで追従するかを切り替える
-        //         // camera.lookAt(Robot.position);
-        //         render();
-        //     }
-        // }
     }
-
-    function ResetBoolean(){
-        movePositiveX = false;
-        moveNegativeX = false;
-        movePositiveZ = false;
-        moveNegativeZ = false;
-    }
-    
 
     //光源設定
 
@@ -269,11 +195,13 @@ function init() {
     directionalLight.position.set(0, 0, 1); 
     // シーンに追加 
     scene.add(directionalLight);
- 
+
     const ambientLight = new THREE.AmbientLight(0xffffff,0.8);
     scene.add(ambientLight);
 
     // 初回実行 
     let render = function () { renderer.render(scene, camera); };
     render();
+
+    moveObj();
 } 

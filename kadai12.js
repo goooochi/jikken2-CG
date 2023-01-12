@@ -157,9 +157,9 @@ function init() {
         if( key_code === 40 ){
 
         }
-
-
     }
+
+    
     function animate() {
             let requestId = requestAnimationFrame(animate);
             if(head_All.rotation.y < 2*Math.PI){
