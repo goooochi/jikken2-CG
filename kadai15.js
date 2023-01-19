@@ -31,13 +31,6 @@ function init() {
 
 
 
-
-
-
-
-
-
-
     //ロボットの色の設定
     const bodyMat = new THREE.MeshStandardMaterial({ 
         color: 0xaaaaaa
@@ -166,7 +159,7 @@ function init() {
     //Jump周辺
     var jump;
     var initPosition = Robot.position.y;
-    var currentPosition = 0;
+    
 
     document.addEventListener("keydown", onDocumentKeyDown, false);
     function onDocumentKeyDown(event_k) {

@@ -3,16 +3,65 @@
   <head>
     <meta charset="UTF-8" />
     <title>Algorithmic Visualization</title>
-    <div id="area1">変更前</div>
+    <link rel="stylesheet" href="style.css">
   </head>
+  
   <body>
     <!-- three.jsを読み撼む -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/101/three.min.js"></script>
     <!-- index.jsを読み撼む -->
-    <script src="kadai15.js"></script>
-    <script src="sample.js"></script>
-    <canvas id="myCanvas"></canvas>
 
-    <input type="button" value="ボタン" onclick="sample();">
+    <div id="keys">
+      <div class="keys-container">
+        <!-- <button id="up">
+          <svg width="30" height="30" viewBox="0 0 10 10">
+            <g transform="rotate(0, 5,5)">
+              <path d="M5,4 L7,6 L3,6 L5,4" />
+            </g>
+        </svg>
+        </button>  -->
+        <button id="left">
+          <svg width="30" height="30" viewBox="0 0 10 10">
+            <g transform="rotate(-90, 5,5)">
+              <path d="M5,4 L7,6 L3,6 L5,4" />
+            </g>
+          </svg>
+        </button> 
+        <!-- <button id="down">
+          <svg width="30" height="30" viewBox="0 0 10 10">
+            <g transform="rotate(180, 5,5)">
+              <path d="M5,4 L7,6 L3,6 L5,4" />
+            </g>
+          </svg>
+        </button>  -->
+        <button id="right">
+          <svg width="30" height="30" viewBox="0 0 10 10">
+            <g transform="rotate(90, 5,5)">
+              <path d="M5,4 L7,6 L3,6 L5,4" />
+            </g>
+          </svg>
+        </button> 
+      </div>
+    </div>
+
+    
+    <script type="module" src="script.js"></script>
+
+    <p class="example"></p>
+    <!-- <canvas id="myCanvas"></canvas> -->
+
+    
   </body>
+
+  <div id="play-btn-screen">
+    <div class="play-btn-container">
+      <div>左右キー + enterキーを使ってゴールに辿り着こう!!!</div>
+      <button id="play-btn">Play</button>
+    </div>
+  </div>
 </html>
+
+
+
+
+
