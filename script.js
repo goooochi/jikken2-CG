@@ -21,20 +21,21 @@
         color: 0x00ff00
     });
 
-    const geometry = new THREE.BoxGeometry(
-        0.5,
-        0.5,
-        0.5
-        );
-
+    
 
 
 
     let camera, scene, renderer, player;
     const boxSideLength = 0.5;
-    let speed = 0.10;
+    let speed = 0.08;
 
-    const courseLength = 200;
+    const geometry = new THREE.BoxGeometry(
+        boxSideLength,
+        boxSideLength,
+        boxSideLength
+        );
+
+    const courseLength = 150;
     const gridHelperSize = courseLength * 2;
 
     //x 軸と y 軸でロボットの動きを制限する
@@ -43,7 +44,7 @@
 
     //衝突を検知するための変数
     let gameOver = false;
-    const numOfObstacles = 200;
+    const numOfObstacles = 100;
     var obstaclesBoundingBoxes = [];
 
     //ゲーム開始時に動作するようにボタンを制御する
@@ -78,12 +79,12 @@
         initializeBoxes();
             
         //x-y平面を作成
-        const gridHelper = new THREE.GridHelper(gridHelperSize, gridHelperSize);
+        const gridHelper = new THREE.GridHelper(gridHelperSize, gridHelperSize,0xffffff,0xffffff);
         scene.add(gridHelper);
 
         renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0xFFFFFF); /* 背景色の設定 */ 
+        renderer.setClearColor(0x6496ED); /* 背景色の設定 */ 
         renderer.render(scene, camera);
         //animate()はクリック時に呼ぶためここではコメントアウトして削除する
         //   animate();
@@ -91,16 +92,9 @@
     }
 
 
-
-    
-
         //障害物の設定
-        function createBox(x, y, z, color,objGeometry) {
-            // const geometry = new THREE.BoxGeometry(
-            // boxSideLength,
-            // boxSideLength,
-            // boxSideLength
-            // );
+        function createBox(x, y, z, color,geometry) {
+            
 
             // if(color == 0xffffff){
             //     const head = new THREE.BoxGeometry(
@@ -111,7 +105,7 @@
             // }
 
             const material = new THREE.MeshLambertMaterial({ color: color });
-            const mesh = new THREE.Mesh(objGeometry, material);
+            const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(x, y, z);
             allObjs.push(mesh);
             scene.add(mesh);
@@ -187,15 +181,13 @@
             allObjs = [];
             obstaclesBoundingBoxes = [];
             
-            
-
-            const playerObj = new THREE.BoxGeometry(
-                boxSideLength,
-                boxSideLength,
-                boxSideLength
+            const playerGeometry = new THREE.BoxGeometry(
+                0.5,
+                1,
+                0.5
                 );
             
-            player = createBox(0, 0, 0,0xffffff,playerObj);
+            player = createBox(0, 0, 0,0xffffff,playerGeometry);
             // player = createBox(0,0,0,0xffffff);
             
             for (let i = 0; i < numOfObstacles; i++) {
@@ -227,8 +219,6 @@
             camera.position.z += speed;
 
             detectCollisions();
-
-
 
             renderer.render(scene, camera);
             requestAnimationFrame(animate);
