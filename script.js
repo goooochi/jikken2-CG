@@ -21,9 +21,6 @@
         color: 0x00ff00
     });
 
-    
-
-
 
     let camera, scene, renderer, player;
     const boxSideLength = 0.5;
@@ -171,7 +168,6 @@
 
         
         }
-
 
 
         function initializeBoxes() {
