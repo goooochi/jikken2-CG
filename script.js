@@ -1,4 +1,7 @@
     import * as THREE from 'https://cdn.skypack.dev/three@0.140.2';
+    // import * as THREE from'https://unpkg.com/three@0.126.1/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+    import { FBXLoader } from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/FBXLoader.js';
 
 
     //ロボットの色の設定
@@ -25,6 +28,8 @@
     let camera, scene, renderer, player;
     const boxSideLength = 0.5;
     let speed = 0.08;
+
+    const enemy = null;
 
     const geometry = new THREE.BoxGeometry(
         boxSideLength,
@@ -92,15 +97,6 @@
         //障害物の設定
         function createBox(x, y, z, color,geometry) {
             
-
-            // if(color == 0xffffff){
-            //     const head = new THREE.BoxGeometry(
-            //         0.2,
-            //         0.2,
-            //         0.2
-            //         );
-            // }
-
             const material = new THREE.MeshLambertMaterial({ color: color });
             const mesh = new THREE.Mesh(geometry, material);
             mesh.position.set(x, y, z);
@@ -112,23 +108,6 @@
             };
         }
 
-        // function createPlayer(x, y, z, color) {
-        //     const playerGeometry = new THREE.BoxGeometry(
-        //         boxSideLength,
-        //         boxSideLength * 2,
-        //         boxSideLength * 1.5
-        //     );
-            
-        //     const playerMaterial = new THREE.MeshStandardMaterial({ color: color });
-        //     const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-        //     playerMesh.position.set(x, y, z);
-        //     allObjs.push(playerMesh);
-        //     scene.add(playerMesh);
-            
-        //     return {
-        //         playerMesh,
-        //     };
-        // }
 
         //障害物を生成する関数
         function createObstacle() {
@@ -140,6 +119,21 @@
                 // y = 0;
                 console.log(y);
             }
+
+            const fbxLoader = new FBXLoader()
+            fbxLoader.load(
+                'bird.fbx',
+                (object) => {
+                    enemy = object;
+                },
+                (xhr) => {
+                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+            },
+                (error) => {
+                    console.log(error)
+                }
+            )
+            
             const obstacle = createBox(x, y, z, 0x6B8E23,geometry);
             const boundingBox = new THREE.Box3().setFromObject(obstacle.mesh);
             obstaclesBoundingBoxes.push(boundingBox);
