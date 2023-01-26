@@ -29,8 +29,6 @@
     const boxSideLength = 0.5;
     let speed = 0.08;
 
-    const enemy = null;
-
     const geometry = new THREE.BoxGeometry(
         boxSideLength,
         boxSideLength,
@@ -96,6 +94,22 @@
 
         //障害物の設定
         function createBox(x, y, z, color,geometry) {
+
+            // const fbxLoader = new FBXLoader();
+            // fbxLoader.load(
+            //     'bird.fbx', (object) => {
+            //         object.position.set(0, 0, 0);
+            //         object.scale.set(0.1, 0.1, 0.1);
+            //         console.log("object" + object);
+            //         scene.add(object);
+            //     },
+            //     (xhr) => {
+            //     console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+            // },
+            //     (error) => {
+            //         console.log(error)
+            //     }
+            // )
             
             const material = new THREE.MeshLambertMaterial({ color: color });
             const mesh = new THREE.Mesh(geometry, material);
@@ -119,22 +133,8 @@
                 // y = 0;
                 console.log(y);
             }
-
-            const fbxLoader = new FBXLoader()
-            fbxLoader.load(
-                'bird.fbx',
-                (object) => {
-                    enemy = object;
-                },
-                (xhr) => {
-                console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
-            },
-                (error) => {
-                    console.log(error)
-                }
-            )
             
-            const obstacle = createBox(x, y, z, 0x6B8E23,geometry);
+            const obstacle = createBox(x, y, z, 0x6B8E23, geometry);
             const boundingBox = new THREE.Box3().setFromObject(obstacle.mesh);
             obstaclesBoundingBoxes.push(boundingBox);
         }
