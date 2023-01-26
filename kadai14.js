@@ -204,10 +204,6 @@ function init() {
             // ホイール
             case 1: break;
             // 右クリック
-
-            case 2:
-                
-                break;
         }
     }
 
@@ -239,17 +235,6 @@ function init() {
         }
 
         render();
-        // if(jump){
-        //     //ジャンプできるようにする
-        //     if(currentPosition < Math.PI){
-        //         let requestId = requestAnimationFrame(animate);
-        //         currentPosition += 0.02; 
-        //         Robot.position.y = Math.sin(currentPosition) * 10;
-        //         //以下のON/OFFで追従するかを切り替える
-        //         // camera.lookAt(Robot.position);
-        //         render();
-        //     }
-        // }
     }
 
     function ResetBoolean(){

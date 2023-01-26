@@ -1,200 +1,334 @@
-
-//課題15
-
-//グーグルのインターネット繋がらなかった時に表示されるやつをつくる
-
-window.addEventListener("DOMContentLoaded", init); 
-
-function init() { 
-    const width = 1500; 
-    const height = 500;
+import * as THREE from 'https://cdn.skypack.dev/three@0.140.2';
+// import * as THREE from'https://unpkg.com/three@0.126.1/build/three.module.js';
+import { OrbitControls } from 'https://unpkg.com/three@0.126.1/examples/jsm/controls/OrbitControls.js';
+import { FBXLoader } from 'https://unpkg.com/three@0.126.1/examples/jsm/loaders/FBXLoader.js';
 
 
-    // シーンを作成
-    const scene = new THREE.Scene(); 
-
-    // レンダラーを作成 
-    const renderer = new THREE.WebGLRenderer({ 
-        canvas: document.querySelector("#myCanvas") 
-    }); 
-    renderer.setSize(width, height); /* ウィンドウサイズの設定 */ 
-    // renderer.setSize( window.innerWidth, window.innerHeight );
-    // キャンバスをDOMツリーに追加
-    renderer.setClearColor(0xFFFFFF); /* 背景色の設定 */ 
-
-
-    // カメラを作成 
-    const camera = new THREE.PerspectiveCamera(45, width / height); 
-    camera.position.set(-200, 50,-70); 
-    camera.lookAt(new THREE.Vector3(0,0,0));
-
-
-
-
-    //ロボットの色の設定
-    const bodyMat = new THREE.MeshStandardMaterial({ 
-        color: 0xaaaaaa
-    });
-    const highlight = new THREE.MeshStandardMaterial({ 
-        color: 0x4444ff
-    }); 
-    const leftleg_All_light = new THREE.MeshStandardMaterial({
-        //赤 
-        color: 0xff0000
-    }); 
-    const rightleg_All_light = new THREE.MeshStandardMaterial({ 
-        //赤 
-        color: 0xff0000
-    }); 
-    const body_All_light = new THREE.MeshStandardMaterial({ 
-        //緑
-        color: 0x00ff00
-    }); 
-
-    const head = new THREE.Mesh(new THREE.BoxGeometry(20,16,16),bodyMat);
-    head.position.set(0,17,0);
-
-    const eye1 = new THREE.Mesh(new THREE.SphereGeometry(1.5,16,12),highlight);
-    eye1.position.set(5,20,10);
-
-    const eye2 = new THREE.Mesh(new THREE.SphereGeometry(1.5,16,12),highlight);
-    eye2.position.set(-5,20,10);
-
-    const mouse = new THREE.Mesh(new THREE.CylinderGeometry(2,2,1,3),highlight);
-    mouse.position.set(0,14,9);
-    mouse.rotation.set(Math.PI/2,Math.PI,0);
+//ロボットの色の設定
+const bodyMat = new THREE.MeshStandardMaterial({ 
+    color: 0xaaaaaa
+});
+const highlight = new THREE.MeshStandardMaterial({ 
+    color: 0x4444ff
+}); 
+const leftleg_All_light = new THREE.MeshStandardMaterial({
+    //赤 
+    color: 0xff0000
+}); 
+const rightleg_All_light = new THREE.MeshStandardMaterial({ 
+    //赤 
+    color: 0xff0000
+}); 
+const body_All_light = new THREE.MeshStandardMaterial({ 
+    //緑
+    color: 0x00ff00
+});
 
 
-    const ear_1 = new THREE.Mesh( new THREE.ConeGeometry(3, 10, 42),highlight);
-    ear_1.position.set(-15,17,0);
-    ear_1.rotation.set(0,0,Math.PI / 2);
+let camera, scene, renderer, player;
+const boxSideLength = 0.5;
+let speed = 0.08;
 
-    const ear_2 = new THREE.Mesh( new THREE.ConeGeometry(3, 10, 42),highlight);
-    ear_2.position.set(15,17,0);
-    ear_2.rotation.set(0,0,- Math.PI / 2);
+const geometry = new THREE.BoxGeometry(
+    boxSideLength,
+    boxSideLength,
+    boxSideLength
+    );
 
-    const head_All = new THREE.Group();
-    head_All.add(head,eye1,eye2,mouse,ear_1,ear_2);
-    scene.add(head_All);
+const courseLength = 150;
+const gridHelperSize = courseLength * 2;
 
+//x 軸と y 軸でロボットの動きを制限する
+const xBoundary = 4 - (boxSideLength / 2);
+const yBoundary = xBoundary / 4;
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(20,17,16),body_All_light);
-    body.position.set(0,0,0);
+//衝突を検知するための変数
+let gameOver = false;
+const numOfObstacles = 100;
+var obstaclesBoundingBoxes = [];
 
-    const body_All = new THREE.Group();
-    body_All.add(body);
-    scene.add(body_All);
+//ゲーム開始時に動作するようにボタンを制御する
+const playBtnScreen = document.getElementById("play-btn-screen");
+const playBtn = playBtnScreen.querySelector("#play-btn");
+var allObjs = [];
 
+//ボタンでロボットが制御できるように変更する
+const keyBtns = document.querySelectorAll(".keys-container button");
 
-    const leftarm = new THREE.Mesh(new THREE.BoxGeometry(2,2,16),bodyMat);
-    leftarm.rotation.set(Math.PI / 2,Math.PI / 6, 0);
-    leftarm.position.set(15,0,0);
-    const leftHand = new THREE.Mesh(new THREE.SphereGeometry(2,16,12),highlight);
-    leftHand.position.set(19.7,-8,0);
+init();
 
-    const leftarm_All = new THREE.Group();
-    leftarm_All.add(leftarm,leftHand);
-    scene.add(leftarm_All);
+function init() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(
+    70,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    200
+    );
 
+    camera.position.set(-2, 1, -4);
+    camera.lookAt(0, 0, 2);
 
-    const rightarm = new THREE.Mesh(new THREE.BoxGeometry(2,2,16),bodyMat);
-    rightarm.rotation.set(Math.PI / 2, -Math.PI / 6, 0);
-    rightarm.position.set(-15,0,0);
-    const rightHand = new THREE.Mesh(new THREE.SphereGeometry(2,16,12),highlight);
-    rightHand.position.set(-19.7,-8,0);
+    player = new THREE.Mesh();
 
-    const rightarm_All = new THREE.Group();
-    rightarm_All.add(rightarm,rightHand);
-    scene.add(rightarm_All);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+    directionalLight.position.set(10, 20, 0);
+    scene.add(ambientLight, directionalLight);
 
+    initializeBoxes();
+        
+    //x-y平面を作成
+    const gridHelper = new THREE.GridHelper(gridHelperSize, gridHelperSize,0xffffff,0xffffff);
+    scene.add(gridHelper);
 
-    const leftleg = new THREE.Mesh(new THREE.BoxGeometry(3,3,16),bodyMat);
-    leftleg.rotation.set(Math.PI / 2, 0, 0);
-    leftleg.position.set(4,-15,0);
-
-
-    const leftfoot = new THREE.Mesh(new THREE.BoxGeometry(3.5,4,1),leftleg_All_light);
-    leftfoot.rotation.set(Math.PI / 2, 0, 0);
-    leftfoot.position.set(4.2,-24,0);
-
-
-    const leftleg_All = new THREE.Group();
-    leftleg_All.add(leftleg,leftfoot);
-    scene.add(leftleg_All);
-
-    
-    const rightleg = new THREE.Mesh(new THREE.BoxGeometry(3,3,16),bodyMat);
-    rightleg.rotation.set(Math.PI / 2, 0, 0);
-    rightleg.position.set(-4,-15,0);
-
-    const rightfoot = new THREE.Mesh(new THREE.BoxGeometry(3.5,4,1),rightleg_All_light);
-    rightfoot.rotation.set(Math.PI / 2, 0, 0);
-    rightfoot.position.set(-4.2,-24,0);
-    const rightleg_All = new THREE.Group();
-    rightleg_All.add(rightleg,rightfoot);
-    scene.add(rightleg_All);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0x6496ED); /* 背景色の設定 */ 
+    renderer.render(scene, camera);
+    //animate()はクリック時に呼ぶためここではコメントアウトして削除する
+    //   animate();
+    document.body.appendChild(renderer.domElement);
+}
 
 
-    const Robot = new THREE.Group();
-    Robot.add(head_All,body_All, rightarm_All,leftarm_All,rightleg_All,leftleg_All);
-    scene.add(Robot);
+    //障害物の設定
+    function createBox(x, y, z, color,geometry) {
 
+        // const fbxLoader = new FBXLoader();
+        // fbxLoader.load(
+        //     'bird.fbx', (object) => {
+        //         object.position.set(0, 0, 0);
+        //         object.scale.set(0.1, 0.1, 0.1);
+        //         console.log("object" + object);
+        //         scene.add(object);
+        //     },
+        //     (xhr) => {
+        //     console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+        // },
+        //     (error) => {
+        //         console.log(error)
+        //     }
+        // )
+        
+        const material = new THREE.MeshLambertMaterial({ color: color });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(x, y, z);
+        allObjs.push(mesh);
+        scene.add(mesh);
 
-
-
-
-
-    const head_1 = new THREE.Mesh(new THREE.BoxGeometry(20,16,16),bodyMat);
-    head_1.position.set(0,50,200);
-    scene.add(head_1);
-
-    function moveObj(){
-        let requestId = requestAnimationFrame(moveObj);
-        head_1.position.z -= 0.1;
-        render();
+        return {
+            mesh,
+        };
     }
 
 
+    //障害物を生成する関数
+    function createObstacle() {
+        //ランダムなx,y,z座標を計算
+        const x = THREE.MathUtils.randFloatSpread(xBoundary * 2);
+        const y = THREE.MathUtils.randInt (0,yBoundary * 2 );
+        const z = THREE.MathUtils.randFloat(10, courseLength - boxSideLength);
+        if(y <= 0){
+            // y = 0;
+            console.log(y);
+        }
+        
+        const obstacle = createBox(x, y, z, 0x6B8E23, geometry);
+        const boundingBox = new THREE.Box3().setFromObject(obstacle.mesh);
+        obstaclesBoundingBoxes.push(boundingBox);
+    }
 
-    //Jump周辺
-    var jump;
-    var initPosition = Robot.position.y;
+
+    function detectCollisions() {
+        const playerBox = new THREE.Box3().setFromObject(player.mesh);
+        // Check each object to detect if there is a collision
+        for (let i = 0; i < numOfObstacles + 1; i++) {
+        // an object was hit
+            if (obstaclesBoundingBoxes[i].intersectsBox(playerBox)) {
+                gameOver = true;
+                //ゲーム終了時にプレイボタンが表示されるようにする
+                playBtnScreen.style.visibility = "visible";
+                playBtn.focus();
+                if (i !== numOfObstacles) {
+                alert("ゲームオーバー");
+                } else {
+                // 最後の緑の障害物に衝突した時
+                alert("ゲームクリア");
+                }
+                return;
+            }
+        }
+
+    
+    }
+
+
+    function initializeBoxes() {
+
+        
+        // make empty at start of a game
+        allObjs = [];
+        obstaclesBoundingBoxes = [];
+        
+        const playerGeometry = new THREE.BoxGeometry(
+            0.5,
+            1,
+            0.5
+            );
+        
+        player = createBox(0, 0, 0,0xffffff,playerGeometry);
+        // player = createBox(0,0,0,0xffffff);
+        
+        for (let i = 0; i < numOfObstacles; i++) {
+            createObstacle();
+        }
+
+        // create finish line box
+        const geometry = new THREE.BoxGeometry(
+        xBoundary * 2,
+        yBoundary * 2,
+        boxSideLength
+        );
+        const material = new THREE.MeshLambertMaterial({ color: "green" });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.set(0, 0, courseLength);
+        allObjs.push(mesh);
+        scene.add(mesh);
+        
+        //実際には見えないボックスを作成(Box3)
+        const boundingBox = new THREE.Box3().setFromObject(mesh);
+        //配列に作成したboundingBoxをpushする
+        obstaclesBoundingBoxes.push(boundingBox);
+    }
     
 
-    document.addEventListener("keydown", onDocumentKeyDown, false);
-    function onDocumentKeyDown(event_k) {
-        let keyCode = event_k.which;
-        if (keyCode == 32) {
+    function animate() {
+        if (gameOver) return;
+        player.mesh.position.z += speed;
+        camera.position.z += speed;
+
+        detectCollisions();
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+        
+    }
+
+
+    var currentPosition = 0;
+    window.addEventListener("keydown", (e) => {
+        const key = e.key;
+        const currXPos = player.mesh.position.x;
+        const currYPos = player.mesh.position.y;
+        if (key === "ArrowLeft") {
+            //ゴールの大きさ以上にできないように制限をかける
+            if (currXPos > xBoundary) return;
+                player.mesh.position.x += speed;
+        }
+        if (key === "ArrowRight") {
+            if (currXPos < -xBoundary) return;
+                player.mesh.position.x -= speed;
+        }
+        if (key === "ArrowDown") {
+        //y<=0以上は移動できないようにする
+            if (currYPos <= 0) return;
+            player.mesh.position.y -= speed;
+        }
+        if (key === "Enter") {
             Jump();
             currentPosition = 0;
         }
+    });
+
+    playBtn.addEventListener("click", () => {
+        allObjs.forEach((obj) => scene.remove(obj));
+        camera.position.set(-2, 1, -4);
+        camera.lookAt(0, 0, 2);
+        initializeBoxes();
+        gameOver = false;
+        animate();
+        playBtnScreen.style.visibility = "hidden";
+    });
+
+    let timeoutID = 0;
+
+    //キーボタンによるロボットの制御
+function moveLeft() {
+    const currXPos = player.mesh.position.x;
+    if (currXPos > xBoundary) return;
+    player.mesh.position.x += speed;
+    clearTimeout(timeoutID);
+    timeoutID = setTimeout(moveLeft, 50);
+}
+
+function moveRight() {
+    const currXPos = player.mesh.position.x;
+    if (currXPos < -xBoundary) return;
+    player.mesh.position.x -= speed;
+    clearTimeout(timeoutID);
+    timeoutID = setTimeout(moveRight, 50);
+}
+
+// function moveUp() {
+//     const currYPos = player.mesh.position.y;
+//     if (currYPos > yBoundary) return;
+//     player.mesh.position.y += speed;
+//     clearTimeout(timeoutID);
+//     timeoutID = setTimeout(moveUp, 50);
+// }
+
+function moveDown() {
+    const currYPos = player.mesh.position.y;
+    if (currYPos <= 0) return;
+    player.mesh.position.y -= speed;
+    clearTimeout(timeoutID);
+    timeoutID = setTimeout(moveDown, 50);
+}
+
+function Jump() {
+    //ジャンプできるようにする
+    if(currentPosition < Math.PI / 2){
+        let requestId = requestAnimationFrame(Jump);
+        currentPosition += 0.02; 
+        player.mesh.position.y = Math.sin(2 * currentPosition) * 2;
+        render();
     }
-    function Jump() {
-        //ジャンプできるようにする
-        if(currentPosition < Math.PI / 2){
-            let requestId = requestAnimationFrame(Jump);
-            currentPosition += 0.02; 
-            Robot.position.y = Math.sin(2 * currentPosition) * 20;
-            //以下のON/OFFで追従するかを切り替える
-            // camera.lookAt(Robot.position);
-            render();
-        }
+}
+
+
+function handleKeyDown(e) {
+    if (gameOver) return;
+    const { id } = e.currentTarget;
+
+    if (id === "left") {
+        moveLeft();
     }
+    if (id === "right") {
+        moveRight();
+    }
+    
+}
 
-    //光源設定
+// moving box - mobile - using screen btns
+keyBtns.forEach((keyBtn) => {
+keyBtn.addEventListener("mousedown", handleKeyDown);
+keyBtn.addEventListener("touchstart", handleKeyDown);
+keyBtn.addEventListener("mouseup", () => {
+    clearTimeout(timeoutID);
+    timeoutID = 0;
+});
 
-    // 平行光源 
-    const directionalLight = new THREE.DirectionalLight(0xffffff,1); 
-    directionalLight.position.set(0, 0, 1); 
-    // シーンに追加 
-    scene.add(directionalLight);
-
-    const ambientLight = new THREE.AmbientLight(0xffffff,0.8);
-    scene.add(ambientLight);
-
-    // 初回実行 
-    let render = function () { renderer.render(scene, camera); };
-    render();
-
-    moveObj();
-} 
+keyBtn.addEventListener("mouseleave", () => {
+    clearTimeout(timeoutID);
+    timeoutID = 0;
+});
+keyBtn.addEventListener("touchend", () => {
+    clearTimeout(timeoutID);
+    timeoutID = 0;
+});
+keyBtn.addEventListener("touchcancel", () => {
+    clearTimeout(timeoutID);
+    timeoutID = 0;
+});
+});

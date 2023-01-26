@@ -18,7 +18,7 @@ function init() {
 
     // カメラを作成 
     const camera = new THREE.PerspectiveCamera(45, width / height); 
-    camera.position.set(0, 100,0); 
+    camera.position.set(0, 10,100); 
     camera.lookAt(new THREE.Vector3(0,0,0));
     
 
@@ -138,125 +138,37 @@ function init() {
     scene.add(Robot);
 
 
-
-    
-    var canvas = document.querySelector("#myCanvas");
-    var verticalLine_0 = (canvas.width)/3
-    var verticalLine_1 = (canvas.width * 2)/3
-    
-    var horizontalLine_0 = (canvas.height)/3
-    var horizontalLine_1 = (canvas.height * 2)/3
-
-    var movePositiveX;
-    var moveNegativeX;
-
-    var movePositiveZ;
-    var moveNegativeZ;
-
     //Jump周辺
     var jump;
     var initPosition = Robot.position.y;
     var currentPosition = 0;
 
 
-    document.addEventListener('mousedown', onDocumentMouseDown, false);
-    function onDocumentMouseDown(event_m) {
-        switch (event_m.button) {
-            // 左クリック
-            case 0:
-                const element = event_m.currentTarget;
-                //canvas上のマウスのXY座標
-                const x = event_m.clientX;
-                const y = event_m.clientY;
-                currentPosition = initPosition;
-                
-                if(horizontalLine_0 > x){
-                    movePositiveX = false;
-                    moveNegativeX = true;
-                    movePositiveZ = false;
-                    moveNegativeZ = false;
-                }
 
-                if(horizontalLine_1 < x){
-                    movePositiveX = true;
-                    moveNegativeX = false;
-                    movePositiveZ = false;
-                    moveNegativeZ = false;
-                }
-
-                if(verticalLine_0 > y){
-                    movePositiveX = false;
-                    moveNegativeX = false;
-                    movePositiveZ = false;
-                    moveNegativeZ = true; 
-                }
-
-                if(verticalLine_1 < y){
-                    movePositiveX = false;
-                    moveNegativeX = false;
-                    movePositiveZ = true;
-                    moveNegativeZ = false;
-                }
-                
-                animate();
-                
-                break;
-            // ホイール
-            case 1: break;
-            // 右クリック
-
-            case 2:
-                
-                break;
+    //リスナーをつける
+    document.addEventListener("keydown", onDocumentKeyDown, false);
+    function onDocumentKeyDown(event_k) {
+        let keyCode = event_k.which;
+        //javascriptにおけるJキーのキーコードは74
+        if (keyCode == 74) {
+            animate();
+            currentPosition = 0;
         }
     }
 
     
-    //canvasを４分割する
     function animate() {
-        let requestId = requestAnimationFrame(animate);
-        var deltaX = 0.1;
-        if(moveNegativeX){
-            Robot.position.x -= 0.1;
-        }
-
-        if(movePositiveX){
-            // let requestId = requestAnimationFrame(animate);
-            Robot.position.x += 0.1;
-            // render();
-        }
-
-        if(moveNegativeZ){
-            // let requestId = requestAnimationFrame(animate);
-            Robot.position.z -= 0.1;
-            // render();
-        }
-
-        if(movePositiveZ){
-            // let requestId = requestAnimationFrame(animate);
-            Robot.position.z += 0.1;
-        }
-
-        render();
-        // if(jump){
-        //     //ジャンプできるようにする
-        //     if(currentPosition < Math.PI){
-        //         let requestId = requestAnimationFrame(animate);
-        //         currentPosition += 0.02; 
-        //         Robot.position.y = Math.sin(currentPosition) * 10;
-        //         //以下のON/OFFで追従するかを切り替える
-        //         // camera.lookAt(Robot.position);
-        //         render();
-        //     }
-        // }
+        //currentPositionで条件分岐
+        
+            if(currentPosition < Math.PI){
+                let requestId = requestAnimationFrame(animate);
+                currentPosition += 0.02; 
+                Robot.position.y = Math.sin(currentPosition) * 10;
+                render();
+            }
+        
     }
 
-    function ResetBoolean(){
-        movePositiveX = false;
-        moveNegativeX = false;
-        movePositiveZ = false;
-        moveNegativeZ = false;
-    }
     
 
     //光源設定
